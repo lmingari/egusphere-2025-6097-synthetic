@@ -1,4 +1,4 @@
-# Variational Autoencoder for Volcanic Ash / Satellite Data Assimilation
+# Variational Autoencoder for Volcanic Ash / Synthetic experiment
 
 ## Python Dependencies
 
@@ -21,7 +21,7 @@ uv pip install -r requirements.txt
 
 ## Training Dataset
 
-The training, validation and test datasets used in the synthetic experiments can be obtained by running the following bash script:
+The training, validation and test datasets used for the synthetic experiments can be obtained by running the following bash script:
 
 ```bash
 ./fetch_data.sh
