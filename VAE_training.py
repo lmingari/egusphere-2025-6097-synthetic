@@ -82,6 +82,7 @@ def load_config(config_path="config.ini", section=None):
         'MINVAL':        0,
         'MAXVAL':        8,
         'VARKEY':        'tephra_col_mass',
+        'UPSAMPLING':    'transpose',
     }
 
     # Initialize parser with hardcoded defaults
@@ -101,6 +102,7 @@ def load_config(config_path="config.ini", section=None):
         'LATENT_DIM':    parser.getint(target_section, 'LATENT_DIM'),
         'NUM_EPOCHS':    parser.getint(target_section, 'NUM_EPOCHS'),
         'VARKEY':        parser.get(target_section, 'VARKEY'),
+        'UPSAMPLING':    parser.get(target_section, 'UPSAMPLING'),
         'FNAME_TRAIN':   parser.get_required_option(target_section, 'FNAME_TRAIN'),
         'FNAME_VAL':     parser.get_required_option(target_section, 'FNAME_VAL'),
         'TARGET_SECTION': target_section,
@@ -140,7 +142,7 @@ def main(config):
                               shuffle=False)
 
     ## 4. Define a model
-    model = VariationalAutoencoder(config['LATENT_DIM'])
+    model = VariationalAutoencoder(config['LATENT_DIM'], upsampling=config['UPSAMPLING'].lower())
 #    summary(model, (1,101,121))
 
     ## 5. Loss function

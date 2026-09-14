@@ -55,6 +55,7 @@ def isotropic_spectrum_ensemble(fields, dx=1.0, dy=1.0, nbins=None):
     returns: k_centers, E_mean(k), E_std(k)
       - E_mean(k): mean over members of each member's isotropic spectrum
       - E_std(k): std across members (for CI / shading)
+      - n_modes(k): number of Fourier modes in each radial bin
     """
     n_members, nx, ny = fields.shape
     if nbins is None:
@@ -74,6 +75,14 @@ def isotropic_spectrum_ensemble(fields, dx=1.0, dy=1.0, nbins=None):
 
     # compute isotropic spectrum per member
     spectra = np.zeros((n_members, nbins))
+
+    # Number of Fourier modes in each radial bin
+    n_modes = np.zeros(nbins, dtype=int)
+
+    for i in range(nbins):
+        mask = (K >= kbins[i]) & (K < kbins[i+1])
+        n_modes[i] = np.sum(mask)
+            
     for m in range(n_members):
         F = np.fft.fftn(fields_windowed[m])
         P = np.abs(F)**2  # raw power
@@ -93,4 +102,4 @@ def isotropic_spectrum_ensemble(fields, dx=1.0, dy=1.0, nbins=None):
     E_mean = np.nanmean(spectra, axis=0)
     E_std  = np.nanstd (spectra, axis=0)
 
-    return k_centers, E_mean, E_std
+    return k_centers, E_mean, E_std, n_modes

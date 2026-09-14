@@ -46,7 +46,7 @@ class Autoencoder(nn.Module):
         return self.decoder(z)
 
 class VariationalAutoencoder(nn.Module):
-    def __init__(self, latent_dim):
+    def __init__(self, latent_dim, upsampling='transpose'):
         super().__init__()
 
         ### Encoder ###
@@ -64,17 +64,35 @@ class VariationalAutoencoder(nn.Module):
         self.fc_logvar = nn.Linear(64*13*16,latent_dim)
 
         ### Decoder ###
-        self.decoder = nn.Sequential(
-                nn.Linear(latent_dim, 64*13*16),
-                nn.ReLU(True),
-                nn.Unflatten(1, (64,13,16)),
-                nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=(1,0)),
-                nn.ReLU(True),
-                nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=(0,0)),
-                nn.ReLU(True),
-                nn.ConvTranspose2d(16, 1, kernel_size=3, stride=2, padding=1, output_padding=(0,0)),
-                nn.ReLU(True)
-                )
+        if upsampling == 'transpose':
+            self.decoder = nn.Sequential(
+                    nn.Linear(latent_dim, 64*13*16),
+                    nn.ReLU(True),
+                    nn.Unflatten(1, (64,13,16)),
+                    nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=(1,0)),
+                    nn.ReLU(True),
+                    nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=(0,0)),
+                    nn.ReLU(True),
+                    nn.ConvTranspose2d(16, 1, kernel_size=3, stride=2, padding=1, output_padding=(0,0)),
+                    nn.ReLU(True)
+                    )
+        elif upsampling == 'bilinear':
+            self.decoder = nn.Sequential(
+                    nn.Linear(latent_dim, 64*13*16),
+                    nn.ReLU(True),
+                    nn.Unflatten(1, (64,13,16)),
+                    nn.Upsample(size=(26,31), mode='bilinear', align_corners=False),
+                    nn.Conv2d(64, 32, kernel_size=3, padding=1),
+                    nn.ReLU(True),
+                    nn.Upsample(size=(51,61), mode='bilinear', align_corners=False),
+                    nn.Conv2d(32, 16, kernel_size=3, padding=1),
+                    nn.ReLU(True),
+                    nn.Upsample(size=(101,121), mode='bilinear', align_corners=False),
+                    nn.Conv2d(16, 1, kernel_size=3, padding=1),
+                    nn.ReLU(True)
+                    )
+        else:
+            raise ValueError("upsampling must be 'transpose' or 'bilinear'")
     
     def forward(self, x):
         mu, logvar = self.encode(x)
